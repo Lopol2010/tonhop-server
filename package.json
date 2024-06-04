@@ -1,0 +1,32 @@
+{
+  "name": "tonhop-server",
+  "version": "1.0.0",
+  "description": "Server for tonhop bridge",
+  "main": "index.js",
+  "author": "Lopol2010",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "tsc-watch --skipLibCheck -p ./tsconfig.json --onSuccess \"node dist/app.js\""
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "envalid": "^8.0.0",
+    "koa": "^2.15.3",
+    "koa-bodyparser": "^4.4.1",
+    "koa-router": "^12.0.1",
+    "mongoose": "^8.4.1",
+    "viem": "^2.13.6"
+  },
+  "devDependencies": {
+    "@typegoose/typegoose": "^12.5.0",
+    "@types/koa": "^2.15.0",
+    "@types/koa-bodyparser": "^4.3.12",
+    "@types/koa-router": "^7.4.8",
+    "@types/node": "^20.14.1",
+    "eslint": "^9.4.0",
+    "prettier": "^3.3.0",
+    "tsc-watch": "^6.2.0",
+    "typescript": "^5.4.5"
+  }
+}

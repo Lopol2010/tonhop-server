@@ -1,0 +1,1 @@
+This package is for running local blockain in order to test server application.
