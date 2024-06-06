@@ -7,9 +7,15 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "tsc-watch --skipLibCheck -p ./tsconfig.json --onSuccess \"node dist/app.js\""
+    "build": "tsc --skipLibCheck",
+    "prestart": "wagmi generate",
+    "start": "tsc-watch --skipLibCheck -p ./tsconfig.json --onSuccess \"node dist/app.js\"",
+    "test": "yarn jest --forceExit --runInBand"
   },
   "dependencies": {
+    "@orbs-network/ton-access": "^2.3.3",
+    "@ton/crypto": "^3.2.0",
+    "@ton/ton": "^13.11.2",
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "koa": "^2.15.3",
@@ -20,12 +26,20 @@
   },
   "devDependencies": {
     "@typegoose/typegoose": "^12.5.0",
+    "@types/jest": "^29.5.12",
     "@types/koa": "^2.15.0",
     "@types/koa-bodyparser": "^4.3.12",
     "@types/koa-router": "^7.4.8",
     "@types/node": "^20.14.1",
+    "@types/supertest": "^6.0.2",
+    "@wagmi/cli": "^2.1.8",
+    "axios": "^1.7.2",
+    "axios-mock-adapter": "^1.22.0",
     "eslint": "^9.4.0",
+    "jest": "^29.7.0",
     "prettier": "^3.3.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.1.4",
     "tsc-watch": "^6.2.0",
     "typescript": "^5.4.5"
   }

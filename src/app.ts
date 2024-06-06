@@ -1,13 +1,16 @@
 import Koa from 'koa'
-import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser'
+import Router from 'koa-router'
 // import cors from '@koa/cors'
 import { Server } from 'http'
-import { resolve } from 'path'
 import env from './env'
-import evmListener from './evm-listener'
+import manageTonWalletV4 from './send-ton'
+import { watchBridge } from './watch-bridge'
 
-evmListener( )
+(async function () {
+  let sendMultipleTransfers = await manageTonWalletV4();
+  watchBridge(sendMultipleTransfers);
+})
 
 const app = new Koa()
 
