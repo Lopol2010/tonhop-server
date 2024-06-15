@@ -1,70 +1,79 @@
-import { createPublicClient, http } from 'viem';
-import { hardhat, mainnet } from 'viem/chains';
+import { createPublicClient, http, parseUnits } from 'viem';
+import { bsc, bscTestnet } from 'viem/chains';
 import env from './env';
 import { bridgeAbi, bridgeAddress } from './generated';
 import { TransferDetailsArray, } from './send-ton';
-import { parseWTON, validateTonAddress } from './utils';
+import { isValidTonAddress, isTestnetAddress, convertDecimals } from './utils';
+import { config } from './config';
+import { getTransaction, getTransactionReceipt } from 'viem/actions';
 
 const client = createPublicClient({
-    chain: env.PRODUCTION ? mainnet : hardhat,
+    chain: config.bsc.chain,
     transport: http(),
 });
 
-export function watchBridge(sendMultipleTransfers: (_: TransferDetailsArray) => void, pollingInterval: number = 4_000) {
+// TODO: on start should gather missed txs? but kind of database needed for this 
+export function watchBridge(sendTonBatch: (_: TransferDetailsArray) => void, pollingInterval: number = 4_000) {
 
+    console.log("watching Bridge:", bridgeAddress);
+  
     let unwatch = client.watchContractEvent({
         abi: bridgeAbi,
         address: bridgeAddress,
         pollingInterval: pollingInterval,
         eventName: "Bridged",
-        // TODO: maybe handle 'onError: ...', depends on what errors could be there?
         onLogs: logs => {
             // @ts-ignore
             let transferDetailsArray = [];
             logs.forEach(log => {
                 if (log.removed) {
-                    console.warn("Ignoring log due to invalid filter: ", log);
+                    console.warn("Ignoring removed log: ", log);
                     return;
                 }
 
-                // TODO: verify that transaction was succesfull, this is relevant (maybe, not sure) if contract emits event before revertable code
-                // TODO: add basic replay protection, not sure if it's really needed. just cache logId and clear that cache after some limit reached to save memory
+                // TODO: add basic replay protection, not sure if it's necessary. 
+                // just cache logId and clear that cache after some limit reached to save memory
 
-                if(log.blockHash == null || log.transactionHash == null || log.logIndex == null) {
+                if (log.blockHash == null || log.transactionHash == null || log.logIndex == null) {
                     console.warn("Ignoring log from pending tx: ", log);
                     return;
                 }
 
-                // WTON in BNB chain has the same decimal places as TONCOIN in TON.
                 let { args: { user, amount, destination } } = log;
 
-                if(!user || !amount || !destination) {
+                if (!user || !amount || !destination) {
                     console.warn("Ignoring log with missing args: ", log);
                     return;
                 }
 
-                if(!validateTonAddress(destination)) {
-                    console.warn("Ignoring log invalid TON network address: ", log);
+                if (!isValidTonAddress(destination)) {
+                    console.warn("Ignoring invalid TON address: ", destination);
                     return;
                 }
 
-                if(amount < parseWTON("0.1")) {
+                if (config.ton.network === "mainnet" && isTestnetAddress(destination)) {
+                    console.warn("Ignoring attempt to transfer to testnet address while bridge wallet is on mainnet: ", destination);
+                    return;
+                }
+
+                let tonAmount = convertDecimals(amount, config.bsc.wtonDecimals, config.ton.tonDecimals);
+                let minTonAmount = parseUnits(config.bsc.minAmount, config.ton.tonDecimals);
+                if (tonAmount < minTonAmount) {
                     console.warn("Ignoring log with too small amount: ", log);
                     return;
                 }
-                
-                // TODO: should see how much gas this long ID would spend when attached to TONCOIN transfer
+
                 let logIdentifier = log.blockHash + log.transactionHash + log.logIndex;
                 transferDetailsArray.push({
                     to: destination,
-                    value: amount,
+                    value: tonAmount,
                     logId: logIdentifier
                 })
             });
 
-            if(transferDetailsArray.length > 0) {
+            if (transferDetailsArray.length > 0) {
                 //@ts-ignore
-                sendMultipleTransfers(transferDetailsArray);
+                sendTonBatch(transferDetailsArray);
             }
 
         }

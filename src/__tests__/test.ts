@@ -1,9 +1,9 @@
 import { bridgeAddress, bridgeConfig, wtonConfig } from '@/generated'
 import { TransferDetailsArray } from '@/send-ton'
-import { parseWTON } from '@/utils'
 import { watchBridge } from '@/watch-bridge'
-import { createTestClient, getContract, http, parseEventLogs, publicActions, walletActions } from 'viem'
+import { createTestClient, getContract, http, parseEventLogs, parseUnits, publicActions, walletActions } from 'viem'
 import { hardhat } from 'viem/chains'
+import { config } from '../config'
 
 describe('Tests', () => {
 
@@ -45,7 +45,7 @@ describe('Tests', () => {
       address: WTON_TREASURY
     });
 
-    await wton.write.approve([bridgeAddress, parseWTON("100000")], {
+    await wton.write.approve([bridgeAddress, parseUnits("100000", config.bsc.wtonDecimals)], {
       account: WTON_TREASURY
     });
   })
@@ -63,7 +63,7 @@ describe('Tests', () => {
   })
 
   it('should ignore bad address', async () => {
-    await bridge.write.bridge([parseWTON("1"), "hahaha"], {
+    await bridge.write.bridge([parseUnits("1", config.bsc.wtonDecimals), "hahaha"], {
       account: WTON_TREASURY
     });
     await client.mine({ blocks: 1, });
@@ -71,7 +71,7 @@ describe('Tests', () => {
   })
 
   it('should create transfer details', async () => {
-    let value = parseWTON("1");
+    let value = parseUnits("1", config.bsc.wtonDecimals);
     let to = "UQC_pxTeZV0YIxOhOWRyJpuni-ab-68Akldrl6pvhZ3BcgV8";
 
     let tx = await bridge.write.bridge([value, to], {
@@ -95,13 +95,13 @@ describe('Tests', () => {
     await client.setAutomine(false);
     // await client.setIntervalMining({ interval: 0 });
 
-    let value = parseWTON("1");
+    let value = parseUnits("1", config.bsc.wtonDecimals);
     let to = "UQC_pxTeZV0YIxOhOWRyJpuni-ab-68Akldrl6pvhZ3BcgV8";
     let tx = await bridge.write.bridge([value, to], {
       account: WTON_TREASURY
     });
 
-    let value2 = parseWTON("2");
+    let value2 = parseUnits("2", config.bsc.wtonDecimals);
     let to2 = "UQC_pxTeZV0YIxOhOWRyJpuni-ab-68Akldrl6pvhZ3BcgV8";
     let tx2 = await bridge.write.bridge([value2, to2], {
       account: WTON_TREASURY

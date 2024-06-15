@@ -1,20 +1,42 @@
 import { defineConfig } from '@wagmi/cli'
 import { Abi, erc20Abi } from 'viem'
-import bridgeAbi from './abi/BridgeContract.json'
+import {config } from './src/config'
+import bridgeAbi from './local-blockchain/artifacts/contracts/BridgeContract.sol/BridgeContract.json'
 
-export default defineConfig({
-  out: 'src/generated.ts',
-  contracts: [{
-    name: "erc20",
-    abi: erc20Abi,
-  },{
-    name: "bridge",
-    abi: bridgeAbi as Abi,
-    address: "0xD50346F70F16B3a9Bd2770731Fc25A0a2230d594"
-  },{
-    name: "wton",
-    abi: erc20Abi,
-    address: "0x76A797A59Ba2C17726896976B7B3747BfD1d220f"
-  }],
-  plugins: [],
+export default defineConfig(() => {
+  if (!config.bsc.chain.testnet) {
+    return {
+      out: 'src/generated.ts',
+      contracts: [{
+        name: "erc20",
+        abi: erc20Abi,
+      }, {
+        name: "bridge",
+        abi: bridgeAbi.abi as Abi,
+        address: "0xCE3878b823c3207AE698C5D7eC45DA162727022F"
+      }, {
+        name: "wton",
+        abi: erc20Abi,
+        address: "0x76A797A59Ba2C17726896976B7B3747BfD1d220f",
+      }],
+      plugins: [],
+    }
+  } else {
+    return {
+      out: 'src/generated.ts',
+      contracts: [{
+        name: "erc20",
+        abi: erc20Abi,
+      }, {
+        name: "bridge",
+        abi: bridgeAbi.abi as Abi,
+        address: "0xa9C1C70692E530AfbB2A09Dac3741D6449f16D2c",
+      }, {
+        name: "wton",
+        abi: erc20Abi,
+        address: "0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee",
+      }],
+      plugins: [],
+    }
+  }
 })

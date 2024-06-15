@@ -7,9 +7,10 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "start": "cross-env ENVIRONMENT=production npm run watch",
     "build": "tsc --skipLibCheck",
-    "prestart": "wagmi generate",
-    "start": "tsc-watch --skipLibCheck -p ./tsconfig.json --onSuccess \"node dist/app.js\"",
+    "generate": "wagmi generate",
+    "dev": "cross-env ENVIRONMENT=dev tsc-watch --skipLibCheck -p ./tsconfig.json --onSuccess \"node dist/app.js\"",
     "test": "yarn jest --forceExit --runInBand"
   },
   "dependencies": {
@@ -25,6 +26,7 @@
     "viem": "^2.13.6"
   },
   "devDependencies": {
+    "@ton/sandbox": "^0.20.0",
     "@typegoose/typegoose": "^12.5.0",
     "@types/jest": "^29.5.12",
     "@types/koa": "^2.15.0",
@@ -35,6 +37,7 @@
     "@wagmi/cli": "^2.1.8",
     "axios": "^1.7.2",
     "axios-mock-adapter": "^1.22.0",
+    "cross-env": "^7.0.3",
     "eslint": "^9.4.0",
     "jest": "^29.7.0",
     "prettier": "^3.3.0",

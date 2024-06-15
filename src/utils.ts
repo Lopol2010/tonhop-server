@@ -2,28 +2,37 @@ import { Address } from "@ton/ton";
 import { parseUnits } from "viem";
 
 
-export let parseWTON = (amount: string) => parseUnits(amount, 9);
+// export let parseWTON = (amountA: string) => parseUnits(amountA, 9);
+export let convertDecimals = (amountA: bigint, decimalsA: number, decimalsB: number) => {
+    if(decimalsA > decimalsB) {
+        return amountA / (BigInt(10) ** BigInt(decimalsA - decimalsB));
+    } else if(decimalsA < decimalsB) {
+        return amountA * (BigInt(10) ** BigInt(decimalsB - decimalsA));
+    }
+    return amountA;
+}
 
-/// returns true if address belongs to mainnet and basechain
-export function validateTonAddress(address: string, allowTestnet: boolean = false) {
+export function isValidTonAddress(address: string) {
 
     try {
         let {workChain} = Address.parse(address);
-        // discard masterchain for now
-        if(workChain != 0) {
-            return false;
-        }
+        // // discard masterchain for now
+        // if(workChain != 0) {
+        //     return false;
+        // }
     } catch (error) {
         return false;
     }
 
-    if(allowTestnet) return true;
+    return true;
+}
+
+export function isTestnetAddress(address: string) {
 
     if(Address.isFriendly(address)) {
         let { isTestOnly } = Address.parseFriendly(address);
-        // discard testnet address
-        return !isTestOnly;
+        return isTestOnly;
     }
 
-    return true;
+    return false;
 }
