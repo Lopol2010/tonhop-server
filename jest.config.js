@@ -4,7 +4,12 @@ module.exports = {
     '@/(.*)': '<rootDir>/src/$1',
   },
   preset: 'ts-jest',
+  // preset: "ts-jest/presets/default-esm",
   testEnvironment: 'node',
   testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
-  testPathIgnorePatterns: ['testUtils'],
+  // testPathIgnorePatterns: ['testUtils'],
+  // transform: {
+    // "\\.[jt]sx?$": "babel-jest"
+  // },
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 }

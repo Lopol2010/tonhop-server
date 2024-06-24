@@ -1,9 +1,9 @@
-import { bridgeAddress, bridgeConfig, wtonConfig } from '@/generated'
-import { TransferDetailsArray } from '@/send-ton'
-import { watchBridge } from '@/watch-bridge'
+import { bridgeAbi, bridgeAddress, bridgeConfig, wtonConfig } from '@/generated'
+import { TransferDetailsArray } from '@/HighloadWalletV3/HighloadWalletV3Wrapper'
+import { watchBridgeForEventLogs } from '@/watch-bridge'
 import { createTestClient, getContract, http, parseEventLogs, parseUnits, publicActions, walletActions } from 'viem'
 import { hardhat } from 'viem/chains'
-import { config } from '../config'
+import { networkConfig } from '../networkConfig'
 
 describe('Tests', () => {
 
@@ -12,10 +12,10 @@ describe('Tests', () => {
   const WTON_TREASURY = "0x5345ae488B9AdeA607175956F7d41f0871116cc7";
   const BRIDGE_OWNER = "0xdC12ea64fbe3A96a4AC47113F63E42d6de162A77";
 
-  let sendMultipleTransfersMock = jest.fn((transfers: TransferDetailsArray) => {
-    // console.log("created transfers", transfers);
+  let onLogsCallback = jest.fn((transfers: TransferDetailsArray) => {
+    console.log("created transfers", transfers);
   });
-  let unwatch = watchBridge(sendMultipleTransfersMock, 5);
+  let unwatch = watchBridgeForEventLogs(onLogsCallback, 5);
 
   let client = createTestClient({
     mode: "hardhat",
@@ -45,7 +45,7 @@ describe('Tests', () => {
       address: WTON_TREASURY
     });
 
-    await wton.write.approve([bridgeAddress, parseUnits("100000", config.bsc.wtonDecimals)], {
+    await wton.write.approve([bridgeAddress, parseUnits("100000", networkConfig.bsc.wtonDecimals)], {
       account: WTON_TREASURY
     });
   })
@@ -63,15 +63,15 @@ describe('Tests', () => {
   })
 
   it('should ignore bad address', async () => {
-    await bridge.write.bridge([parseUnits("1", config.bsc.wtonDecimals), "hahaha"], {
+    await bridge.write.bridge([parseUnits("1", networkConfig.bsc.wtonDecimals), "hahaha"], {
       account: WTON_TREASURY
     });
     await client.mine({ blocks: 1, });
-    expect(sendMultipleTransfersMock).not.toHaveBeenCalled();
+    expect(onLogsCallback).not.toHaveBeenCalled();
   })
 
   it('should create transfer details', async () => {
-    let value = parseUnits("1", config.bsc.wtonDecimals);
+    let value = parseUnits("1", networkConfig.bsc.wtonDecimals);
     let to = "UQC_pxTeZV0YIxOhOWRyJpuni-ab-68Akldrl6pvhZ3BcgV8";
 
     let tx = await bridge.write.bridge([value, to], {
@@ -83,10 +83,15 @@ describe('Tests', () => {
     let txReceipt = await client.getTransactionReceipt({ hash: tx });
     let logs = parseEventLogs({ ...bridgeConfig, eventName: "Bridged", logs: txReceipt.logs });
     let logId = logs[0].blockHash + logs[0].transactionHash + logs[0].logIndex;
-      // console.log(logs);
+    // console.log(logs);
 
-    expect(sendMultipleTransfersMock).toHaveBeenCalledWith([{
-      to, value, logId
+    expect(onLogsCallback).toHaveBeenCalledWith([{
+      to, value, sourceLog: {
+        blockNumber: logs[0].blockNumber,
+        blockHash: logs[0].blockHash,
+        transactionHash: logs[0].transactionHash,
+        logIndex: logs[0].logIndex,
+      }
     }]);
   })
 
@@ -95,30 +100,57 @@ describe('Tests', () => {
     await client.setAutomine(false);
     // await client.setIntervalMining({ interval: 0 });
 
-    let value = parseUnits("1", config.bsc.wtonDecimals);
+    let value = parseUnits("1", networkConfig.bsc.wtonDecimals);
     let to = "UQC_pxTeZV0YIxOhOWRyJpuni-ab-68Akldrl6pvhZ3BcgV8";
     let tx = await bridge.write.bridge([value, to], {
       account: WTON_TREASURY
     });
 
-    let value2 = parseUnits("2", config.bsc.wtonDecimals);
+    let value2 = parseUnits("2", networkConfig.bsc.wtonDecimals);
     let to2 = "UQC_pxTeZV0YIxOhOWRyJpuni-ab-68Akldrl6pvhZ3BcgV8";
     let tx2 = await bridge.write.bridge([value2, to2], {
       account: WTON_TREASURY
     });
 
-    await client.setAutomine(true); 
+    await client.setAutomine(true);
     await client.mine({ blocks: 1 });
 
     let logId = await makeLogID(tx);
     let logId2 = await makeLogID(tx2);
 
     // ATTENTION: set 'gas: auto' in hardhat network config 
-    expect(sendMultipleTransfersMock).toHaveBeenCalledWith([{
+    expect(onLogsCallback).toHaveBeenCalledWith([{
       to, value, logId
-    },{
+    }, {
       to: to2, value: value2, logId: logId2
     }]);
+  })
+
+  it('123', async () => {
+
+    let logs222 = await client.getContractEvents({
+        abi: bridgeAbi,
+        address: bridgeAddress,
+        eventName: "Bridged",
+        fromBlock: 39451418n,
+        toBlock: 39451418n,
+        // fromBlock: 39387811n,
+        // toBlock: 39388130n
+        // toBlock: 39417811n
+        // toBlock: 39730059n,
+        // toBlock: "latest"
+    });
+    // const unwatch = client.watchContractEvent(
+    //   {
+    //     abi: bridgeAbi,
+    //     address: bridgeAddress,
+    //     eventName: "Bridged",
+    //     fromBlock: 39387811n,
+    //     onLogs: lg=> console.log(lg),
+    //   }
+    // );
+
+    console.log(logs222);
   })
 
   async function makeLogID(tx: `0x${string}`) {

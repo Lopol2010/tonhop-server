@@ -21,6 +21,6 @@
     "allowSyntheticDefaultImports": true, 
     "skipLibCheck": true 
   },
-  "include": ["src/**/*", "src/config.ts"],
+  "include": ["src/**/*", "src/networkConfig.ts", "src/utils/.ts"],
   "exclude": ["node_modules", "dist"]
 }

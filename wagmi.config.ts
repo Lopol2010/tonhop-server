@@ -1,16 +1,14 @@
 import { defineConfig } from '@wagmi/cli'
 import { Abi, erc20Abi } from 'viem'
-import {config } from './src/config'
+import { networkConfig } from './src/networkConfig'
 import bridgeAbi from './local-blockchain/artifacts/contracts/BridgeContract.sol/BridgeContract.json'
 
 export default defineConfig(() => {
-  if (!config.bsc.chain.testnet) {
+  console.log(process.env.NODE_ENV, process.env.MODE)
+  if (process.env.NODE_ENV === "production" || process.env.MODE === "hardhat") {
     return {
       out: 'src/generated.ts',
       contracts: [{
-        name: "erc20",
-        abi: erc20Abi,
-      }, {
         name: "bridge",
         abi: bridgeAbi.abi as Abi,
         address: "0xCE3878b823c3207AE698C5D7eC45DA162727022F"
@@ -25,9 +23,6 @@ export default defineConfig(() => {
     return {
       out: 'src/generated.ts',
       contracts: [{
-        name: "erc20",
-        abi: erc20Abi,
-      }, {
         name: "bridge",
         abi: bridgeAbi.abi as Abi,
         address: "0xa9C1C70692E530AfbB2A09Dac3741D6449f16D2c",
