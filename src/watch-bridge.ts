@@ -60,6 +60,7 @@ export async function retrieveMissedLogs(
 
     console.log(`[Backtrack] start at: ${startFromLog.blockNumber} ${startFromLog.transactionHash} ${startFromLog.logIndex}`);
 
+    // TODO: handle rejection
     let logs = await client.getContractEvents({
         abi: bridgeAbi,
         address: bridgeAddress,

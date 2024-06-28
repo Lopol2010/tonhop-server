@@ -26,8 +26,11 @@ import mongoose from 'mongoose'
   let lastProcessedLog = await CrosschainTransferModel.find().sort({ _id: -1 }).limit(1).exec();
 
   if (lastProcessedLog.length != 0) {
-    // TODO: this will fail if too much blocks passed since last processed log, like 5k blocks idk
-    await retrieveMissedLogs(lastProcessedLog[0], processBridgeEventLogs);
+    try {
+      await retrieveMissedLogs(lastProcessedLog[0], processBridgeEventLogs);
+    } catch (error) {
+      console.log("error backtrack:", error);
+    }
   }
 
   watchBridgeForEventLogs(processBridgeEventLogs);
