@@ -30,9 +30,9 @@ export let HighloadWalletV3Wrapper = (() => {
         sendBatch: (transfers: TransferDetailsArray) => Promise<void>;
     };
 
-    const getInstance = async () => {
+    const getInstance = async (lastQueryId: bigint) => {
         if (!instance) {
-            instance = await initializeInstance();
+            instance = await initializeInstance(lastQueryId);
         }
         return instance;
     }
@@ -42,7 +42,7 @@ export let HighloadWalletV3Wrapper = (() => {
     }
 })();
 
-async function initializeInstance() {
+async function initializeInstance(lastQueryId: bigint) {
 
     let key = networkConfig.keyPair;
     let highloadAddress = networkConfig.ton.highloadWalletAddress;
@@ -58,12 +58,10 @@ async function initializeInstance() {
         throw Error("[HighloadWallet] wallet is not deployed!");
     }
 
-    console.log("[HighloadWallet] balance:", await client.getBalance(highloadAddress));
+    console.log("[HighloadWallet] connected with balance:", await client.getBalance(highloadAddress));
 
-    // TODO: save this in DB?
-    let queryId = new HighloadQueryId();
-    let queryIdFromFile = await readFile(path.normalize("./queryId.txt"), "utf8");
-    queryId = HighloadQueryId.fromQueryId(BigInt(queryIdFromFile));
+    let queryId = HighloadQueryId.fromQueryId(lastQueryId);
+    console.log("[HighloadWallet] last query id:", queryId);
 
     return {
         getQueryId: () => {
@@ -75,9 +73,7 @@ async function initializeInstance() {
         sendBatch: async (transfers: TransferDetailsArray) => {
             transfers.forEach(item => console.log(`[HighloadWallet] will send ${item.value} to ${item.to}`));
 
-            let currentQueryId = queryId;
             queryId = queryId.hasNext() ? queryId.getNext() : new HighloadQueryId();
-            await writeFile("./queryId.txt", queryId.getQueryId().toString(), "utf8");
 
             let messages = transfers.map(({ to, value, sourceLog }) => {
                 return {
@@ -97,7 +93,7 @@ async function initializeInstance() {
                     key.secretKey,
                     messages,
                     4269,
-                    currentQueryId,
+                    queryId,
                     120,
                     Math.floor(Date.now() / 1000) - 30,
                     undefined

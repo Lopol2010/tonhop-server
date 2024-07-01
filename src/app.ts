@@ -38,15 +38,20 @@ import mongoose from 'mongoose'
 
 async function processBridgeEventLogs(logsData: TransferDetailsArray) {
 
-  let highloadWallet = await HighloadWalletV3Wrapper.getInstance();
+  let lastTransferDocument = await CrosschainTransferModel.findOne({}, null, { sort: { _id: -1 } }).exec();
+  let lastQueryId = 0n;
+  if (lastTransferDocument && lastTransferDocument.highloadWalletQueryId) {
+    lastQueryId = lastTransferDocument.highloadWalletQueryId;
+  }
+  let highloadWallet = await HighloadWalletV3Wrapper.getInstance(lastQueryId);
 
-  // let session = await mongoose.connection.startSession();
   try {
     await mongoose.connection.transaction(async (session) => {
       let documentsToCreate = logsData.map(transferInfo => {
         return {
           status: "ton_msg_sent",
           ...transferInfo.sourceLog,
+          highloadWalletQueryId: highloadWallet.getQueryId()
         }
       });
       let transferModelsArray = await CrosschainTransferModel.create(
