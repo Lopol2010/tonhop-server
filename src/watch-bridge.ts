@@ -24,7 +24,7 @@ export function watchBridgeForEventLogs(onLogsCallback: (_: TransferDetailsArray
         address: networkConfig.bsc.bridgeAddress,
         pollingInterval: pollingInterval,
         eventName: "Bridged",
-        onError: err => { console.log(err); },
+        onError: err => { console.log("[Listener] error:", err); },
         onLogs: logs => {
             let transferDetailsArray = filterLogs(logs);
             transferDetailsArray.forEach(({sourceLog: log})=> console.log(`[Listener] new log: ${log.blockNumber} ${log.transactionHash} ${log.logIndex}`));
