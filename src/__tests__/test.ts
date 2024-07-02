@@ -1,7 +1,6 @@
-import { bridgeAbi, bridgeAddress, bridgeConfig, wtonConfig } from '@/generated'
 import { TransferDetailsArray } from '@/HighloadWalletV3/HighloadWalletV3Wrapper'
 import { watchBridgeForEventLogs } from '@/watch-bridge'
-import { createTestClient, getContract, http, parseEventLogs, parseUnits, publicActions, walletActions } from 'viem'
+import { createTestClient, erc20Abi, getContract, http, parseEventLogs, parseUnits, publicActions, walletActions } from 'viem'
 import { hardhat } from 'viem/chains'
 import { networkConfig } from '../networkConfig'
 
@@ -28,11 +27,13 @@ describe('Tests', () => {
 
 
   let wton = getContract({
-    ...wtonConfig,
+    address: networkConfig.bsc.wtonAddress,
+    abi: erc20Abi,
     client: client
   });
   let bridge = getContract({
-    ...bridgeConfig,
+    address: networkConfig.bsc.bridgeAddress,
+    abi: networkConfig.bsc.bridgeAbi,
     client: client
   });
 
@@ -45,7 +46,7 @@ describe('Tests', () => {
       address: WTON_TREASURY
     });
 
-    await wton.write.approve([bridgeAddress, parseUnits("100000", networkConfig.bsc.wtonDecimals)], {
+    await wton.write.approve([networkConfig.bsc.bridgeAddress, parseUnits("100000", networkConfig.bsc.wtonDecimals)], {
       account: WTON_TREASURY
     });
   })
@@ -81,7 +82,7 @@ describe('Tests', () => {
 
     // recreate logId
     let txReceipt = await client.getTransactionReceipt({ hash: tx });
-    let logs = parseEventLogs({ ...bridgeConfig, eventName: "Bridged", logs: txReceipt.logs });
+    let logs = parseEventLogs({ abi: networkConfig.bsc.bridgeAbi, eventName: "Bridged", logs: txReceipt.logs });
     let logId = logs[0].blockHash + logs[0].transactionHash + logs[0].logIndex;
     // console.log(logs);
 
@@ -129,8 +130,8 @@ describe('Tests', () => {
   it('123', async () => {
 
     let logs222 = await client.getContractEvents({
-        abi: bridgeAbi,
-        address: bridgeAddress,
+        abi: networkConfig.bsc.bridgeAbi,
+        address: networkConfig.bsc.bridgeAddress,
         eventName: "Bridged",
         fromBlock: 39451418n,
         toBlock: 39451418n,
@@ -155,7 +156,7 @@ describe('Tests', () => {
 
   async function makeLogID(tx: `0x${string}`) {
     let txReceipt = await client.getTransactionReceipt({ hash: tx });
-    let logs = parseEventLogs({ ...bridgeConfig, eventName: "Bridged", logs: txReceipt.logs });
+    let logs = parseEventLogs({ abi: networkConfig.bsc.bridgeAbi, eventName: "Bridged", logs: txReceipt.logs });
     let logId = logs[0].blockHash + logs[0].transactionHash + logs[0].logIndex;
     return logId;
   }

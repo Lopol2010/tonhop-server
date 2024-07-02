@@ -1,7 +1,6 @@
 import { Abi, BlockNumber, BlockTag, ContractEventName, GetContractEventsReturnType, Log, createPublicClient, http, parseUnits } from 'viem';
 import { bsc, bscTestnet } from 'viem/chains';
 // import env from './utils/env';
-import { bridgeAbi, bridgeAddress } from './generated';
 import { TransferDetailsArray, } from './HighloadWalletV3/HighloadWalletV3Wrapper';
 import { isValidTonAddress, isTestnetAddress, convertDecimals } from './utils/utils';
 import { networkConfig } from './networkConfig';
@@ -17,12 +16,12 @@ const queue = new PQueue({concurrency: 1});
 
 export function watchBridgeForEventLogs(onLogsCallback: (_: TransferDetailsArray) => void, pollingInterval: number = 4_000) {
 
-    console.log("[Listener] listening at:", bridgeAddress);
+    console.log("[Listener] listening at:", networkConfig.bsc.bridgeAddress);
     
-
     let unwatch = client.watchContractEvent({
-        abi: bridgeAbi,
-        address: bridgeAddress,
+
+        abi: networkConfig.bsc.bridgeAbi,
+        address: networkConfig.bsc.bridgeAddress,
         pollingInterval: pollingInterval,
         eventName: "Bridged",
         onError: err => { console.log(err); },
@@ -62,8 +61,8 @@ export async function retrieveMissedLogs(
 
     // TODO: handle rejection
     let logs = await client.getContractEvents({
-        abi: bridgeAbi,
-        address: bridgeAddress,
+        abi: networkConfig.bsc.bridgeAbi,
+        address: networkConfig.bsc.bridgeAddress,
         eventName: "Bridged",
         // TODO: careful with this, archival node might be needed, RPC nodes will limit max range between blocks
         fromBlock: startFromLog.blockNumber,
@@ -94,7 +93,7 @@ export async function retrieveMissedLogs(
     console.log("[Backtrack] missed logs not found.")
 };
 
-type BridgedEventLogType = Log<bigint, number, boolean, undefined, boolean, typeof bridgeAbi, 'Bridged'>;
+type BridgedEventLogType = Log<bigint, number, boolean, undefined, boolean, typeof networkConfig.bsc.bridgeAbi, 'Bridged'>;
 function filterLogs(logs: BridgedEventLogType[]) {
     let transferDetailsArray: TransferDetailsArray = [];
     logs.forEach(log => {

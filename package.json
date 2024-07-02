@@ -8,13 +8,13 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "dotenvx run -f .env.production -- node dist/app.js",
+    "start": "npm install && node dist/src/app.js",
     "build": "dotenvx run -f .env.production -- tsc --skipLibCheck",
     "gen:prod": "cross-env NODE_ENV=production wagmi generate",
     "gen:dev": "cross-env NODE_ENV=development wagmi generate",
     "gen:hardhat": "cross-env NODE_ENV=development MODE=hardhat wagmi generate",
-    "dev": "dotenvx run -f .env.development -- tsc-watch --skipLibCheck -p ./tsconfig.json --onSuccess \"node dist/app.js\"",
-    "dev2": "tsc-watch --skipLibCheck -p ./tsconfig.json --onSuccess \"dotenvx run -f .env.development -- node dist/app.js\"",
+    "dev": "dotenvx run -f .env.development -- tsc-watch --skipLibCheck -p ./tsconfig.json --onSuccess \"node dist/src/app.js\"",
+    "dev2": "tsc-watch --skipLibCheck -p ./tsconfig.json --onSuccess \"dotenvx run -f .env.development -- node dist/src/app.js\"",
     "test:hardhat": "dotenvx run -f .env.hardhat -- jest --forceExit --runInBand",
     "test": "dotenvx run -f .env.development -- jest --forceExit --runInBand"
   },

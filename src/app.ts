@@ -23,11 +23,11 @@ import mongoose from 'mongoose'
 
 
   // TODO: maybe use blockNumber + transactionIndex + logIndex to find latest? 
-  let lastProcessedLog = await CrosschainTransferModel.find().sort({ _id: -1 }).limit(1).exec();
+  let lastProcessedLog = await CrosschainTransferModel.findOne({}, null, { sort: { _id: -1 } }).exec();
 
-  if (lastProcessedLog.length != 0) {
+  if (lastProcessedLog) {
     try {
-      await retrieveMissedLogs(lastProcessedLog[0], processBridgeEventLogs);
+      await retrieveMissedLogs(lastProcessedLog, processBridgeEventLogs);
     } catch (error) {
       console.log("error backtrack:", error);
     }

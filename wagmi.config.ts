@@ -4,7 +4,6 @@ import { networkConfig } from './src/networkConfig'
 import bridgeAbi from './local-blockchain/artifacts/contracts/BridgeContract.sol/BridgeContract.json'
 
 export default defineConfig(() => {
-  console.log(process.env.NODE_ENV, process.env.MODE)
   if (process.env.NODE_ENV === "production" || process.env.MODE === "hardhat") {
     return {
       out: 'src/generated.ts',

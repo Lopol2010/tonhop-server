@@ -4,22 +4,30 @@ import { Network } from "@orbs-network/ton-access";
 import { bsc, bscTestnet, hardhat } from "viem/chains";
 import { KeyPair, keyPairFromSecretKey, mnemonicToWalletKey } from "@ton/crypto";
 
+import {BridgeContract$Type} from '../local-blockchain/artifacts/contracts/BridgeContract.sol/BridgeContract'
+import artifact from '../local-blockchain/artifacts/contracts/BridgeContract.sol/BridgeContract.json'
+
+const bridgeAbi = artifact.abi as BridgeContract$Type["abi"];
+
 export type NetworkConfigInterface = {
     keyPair: KeyPair,
     ton: {
         network: Network,
         highloadWalletAddress: Address,
-        tonDecimals: number
+        tonDecimals: number,
     },
     bsc: {
         chain: any,
         rpcUrl: string,
+        minAmount: string,
         wtonDecimals: number,
-        minAmount: string
+        wtonAddress: `0x${string}`,
+        bridgeAddress: `0x${string}`,
+        bridgeAbi: typeof bridgeAbi,
     }
 }
 
-export let configs: { [id: string]: NetworkConfigInterface } = {
+let configs: { [id: string]: NetworkConfigInterface } = {
     development: {
         keyPair: keyPairFromSecretKey(Buffer.from(env.PRIVATE_KEY, "hex")),
         ton: {
@@ -31,8 +39,11 @@ export let configs: { [id: string]: NetworkConfigInterface } = {
         bsc: {
             chain: env.MODE ? hardhat : bscTestnet,
             rpcUrl: "https://bsc-testnet-rpc.publicnode.com",
-            wtonDecimals: env.MODE ? 9 : 18,
             minAmount: "0.05",
+            wtonDecimals: env.MODE ? 9 : 18,
+            wtonAddress: "0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee",
+            bridgeAbi: bridgeAbi,
+            bridgeAddress: "0xa9C1C70692E530AfbB2A09Dac3741D6449f16D2c"
         }
     },
     production: {
@@ -41,13 +52,16 @@ export let configs: { [id: string]: NetworkConfigInterface } = {
             network: "mainnet",
             // mainnet, owner is Alex's keypair
             highloadWalletAddress: Address.parse("EQDbm_PjuTsS2eUwaqcESuOqkiTBNIZrB5R12g54lBsQ7S5m"),
-            tonDecimals: 9
+            tonDecimals: 9,
         },
         bsc: {
             chain: bsc,
             rpcUrl: "",
-            wtonDecimals: 9,
             minAmount: "0.05",
+            wtonDecimals: 9,
+            wtonAddress: "0x76A797A59Ba2C17726896976B7B3747BfD1d220f",
+            bridgeAbi: bridgeAbi,
+            bridgeAddress: "0xCE3878b823c3207AE698C5D7eC45DA162727022F"
         }
     }
 }
