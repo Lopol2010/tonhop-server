@@ -8,8 +8,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "npm install && node dist/src/app.js",
-    "build": "dotenvx run -f .env.production -- tsc --skipLibCheck",
+    "start": "node dist/src/app.js",
+    "build": "tsc --skipLibCheck",
+    "build:local": "dotenvx run -f .env.production -- tsc --skipLibCheck",
     "gen:prod": "cross-env NODE_ENV=production wagmi generate",
     "gen:dev": "cross-env NODE_ENV=development wagmi generate",
     "gen:hardhat": "cross-env NODE_ENV=development MODE=hardhat wagmi generate",
