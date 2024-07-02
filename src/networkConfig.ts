@@ -4,10 +4,7 @@ import { Network } from "@orbs-network/ton-access";
 import { bsc, bscTestnet, hardhat } from "viem/chains";
 import { KeyPair, keyPairFromSecretKey, mnemonicToWalletKey } from "@ton/crypto";
 
-import {BridgeContract$Type} from '../local-blockchain/artifacts/contracts/BridgeContract.sol/BridgeContract'
-import artifact from '../local-blockchain/artifacts/contracts/BridgeContract.sol/BridgeContract.json'
-
-const bridgeAbi = artifact.abi as BridgeContract$Type["abi"];
+import { bridgeAbi } from "./abi/BridgeContract";
 
 export type NetworkConfigInterface = {
     keyPair: KeyPair,
