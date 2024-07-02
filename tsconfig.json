@@ -6,6 +6,7 @@
     "sourceMap": true,
     "outDir": "dist",
     "baseUrl": "src",
+    "rootDir": "src",
     "paths": {
       "@/*": ["*"]
     },
@@ -21,6 +22,6 @@
     "allowSyntheticDefaultImports": true, 
     "skipLibCheck": true 
   },
-  "include": ["src/**/*", "src/networkConfig.ts", "src/utils/.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "local-blockchain", "src/__tests__"]
 }
