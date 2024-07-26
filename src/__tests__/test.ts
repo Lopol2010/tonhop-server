@@ -88,7 +88,6 @@ describe('Tests', () => {
 
     expect(onLogsCallback).toHaveBeenCalledWith([{
       to, value, sourceLog: {
-        blockNumber: logs[0].blockNumber,
         blockHash: logs[0].blockHash,
         transactionHash: logs[0].transactionHash,
         logIndex: logs[0].logIndex,

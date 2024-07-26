@@ -7,7 +7,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { getAddress, http, parseGwei, parseUnits, publicActions, walletActions } from "viem";
 import { hardhat } from "viem/chains";
-import watchBridge from "../../src/watch-bridge";
+import watchBridge from "../../src/BNBWatcher";
 
 // temp fix: https://github.com/NomicFoundation/edr/issues/447#issuecomment-2125163333
 mine()

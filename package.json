@@ -9,6 +9,7 @@
   "private": true,
   "scripts": {
     "start": "node dist/app.js",
+    "start:prod": "dotenvx run -f .env.production -- node dist/app.js",
     "build": "tsc",
     "build:local": "dotenvx run -f .env.production -- tsc",
     "gen:prod": "cross-env NODE_ENV=production wagmi generate",

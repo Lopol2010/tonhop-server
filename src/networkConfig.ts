@@ -1,20 +1,19 @@
 import { Address } from "@ton/ton";
 import env from "./utils/env";
 import { Network } from "@orbs-network/ton-access";
-import { bsc, bscTestnet, hardhat } from "viem/chains";
+import { bsc, bscTestnet, Chain, hardhat } from "viem/chains";
 import { KeyPair, keyPairFromSecretKey, mnemonicToWalletKey } from "@ton/crypto";
 
 import { bridgeAbi } from "./abi/BridgeContract";
 
 export type NetworkConfigInterface = {
-    keyPair: KeyPair,
     ton: {
         network: Network,
         highloadWalletAddress: Address,
         tonDecimals: number,
     },
     bsc: {
-        chain: any,
+        chain: Chain,
         rpcUrl: string,
         minAmount: string,
         wtonDecimals: number,
@@ -26,7 +25,6 @@ export type NetworkConfigInterface = {
 
 let configs: { [id: string]: NetworkConfigInterface } = {
     development: {
-        keyPair: keyPairFromSecretKey(Buffer.from(env.PRIVATE_KEY, "hex")),
         ton: {
             network: "testnet",
             // testnet, owner is my keypair
@@ -35,7 +33,8 @@ let configs: { [id: string]: NetworkConfigInterface } = {
         },
         bsc: {
             chain: env.MODE ? hardhat : bscTestnet,
-            rpcUrl: "https://bsc-testnet-rpc.publicnode.com",
+            // rpcUrl: "https://bsc-testnet-rpc.publicnode.com",
+            rpcUrl: bscTestnet.rpcUrls.default.http[0],
             minAmount: "0.05",
             wtonDecimals: env.MODE ? 9 : 18,
             wtonAddress: "0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee",
@@ -44,7 +43,6 @@ let configs: { [id: string]: NetworkConfigInterface } = {
         }
     },
     production: {
-        keyPair: keyPairFromSecretKey(Buffer.from(env.PRIVATE_KEY, "hex")),
         ton: {
             network: "mainnet",
             // mainnet, owner is Alex's keypair

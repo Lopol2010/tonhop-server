@@ -1,66 +1,73 @@
-import { TransferDetailsArray } from '@/HighloadWalletV3/HighloadWalletV3Wrapper';
+import { BridgedLog } from '@/LogValidation';
+import { TransferDetailsArray } from '@/utils/TransferDetailsArray';
 import {
     DocumentType,
     ReturnModelType,
+    Severity,
     getModelForClass,
     index,
     modelOptions,
     prop,
 } from '@typegoose/typegoose'
 
+export type TransferStatus = "pending" | "completed" | "failed";
 
+export type TransferOriginTON = {
+    chain: "TON",
+    hash: string,
+    lt: string
+}
 
-export type CrosschainTransferStatus = "tokens_received" | "ton_msg_sent" | "success" | "failed";
+export type TransferOriginBNB = {
+    chain: "BNB",
+    blockHash: `0x${string}`,
+    transactionHash: `0x${string}`,
+    logIndex: number
+}
 
-@index({ blockHash: 1, transactionHash: 1, logIndex: 1 }, { unique: true })
+export type TransferOriginChain = "BNB" | "TON";
+
+export type TransferOrigin = {
+    chain: TransferOriginChain
+} & (TransferOriginTON | TransferOriginBNB);
+
 @modelOptions({
     schemaOptions: { timestamps: true },
+    options: { allowMixed: Severity.ALLOW }
 })
 export class CrosschainTransfer {
-    @prop({ required: true })
-    blockNumber!: bigint
 
     @prop({ required: true })
-    blockHash!: string
-    @prop({ required: true })
-    transactionHash!: string
-    @prop({ required: true })
-    logIndex!: number
+    status!: TransferStatus
 
-    @prop({})
-    highloadWalletQueryId!: bigint
     @prop({ required: true })
-    status!: CrosschainTransferStatus
+    origin!: TransferOrigin
 
-    public static async setStatusMany(this: ReturnModelType<typeof CrosschainTransfer>, logsData: TransferDetailsArray, status: CrosschainTransferStatus) {
+    public static async setStatusMany(this: ReturnModelType<typeof CrosschainTransfer>, logsData: TransferDetailsArray, status: TransferStatus) {
         let filter_allCurrentLogs = { $or: logsData.map(log => log.sourceLog) };
         let update = { $set: { status } };
         await CrosschainTransferModel.updateMany(filter_allCurrentLogs, update);
     }
+
+    public static async existsByLog(this: ReturnModelType<typeof CrosschainTransfer>, log: BridgedLog) {
+        return (await CrosschainTransferModel.exists({
+            origin: {
+                chain: "BNB",
+                blockHash: log.blockHash,
+                transactionHash: log.transactionHash,
+                logIndex: log.logIndex
+            }
+        })) != null;
+    }
+
+    public static async findLastByOriginChain<T extends TransferOriginChain>(this: ReturnModelType<typeof CrosschainTransfer>, originChain: T) {
+        let document = await CrosschainTransferModel.findOne<CrosschainTransfer & { origin: { chain: T } }>(
+            { "origin.chain": originChain },
+            null,
+            { sort: { _id: -1 } }
+        ).exec();
+        return document;
+    }
 }
 
 export const CrosschainTransferModel = getModelForClass(CrosschainTransfer)
-
-export async function findOrCreateUser(loginOptions: {
-    name: string
-    email?: string
-    facebookId?: string
-    telegramId?: number
-}) {
-    const user = await CrosschainTransferModel.findOneAndUpdate(
-        loginOptions,
-        {},
-        {
-            new: true,
-            upsert: true,
-        }
-    )
-    if (!user) {
-        throw new Error('User not found')
-    }
-    //   if (!user.token) {
-    //     user.token = await sign({ id: user.id })
-    //     await user.save()
-    //   }
-    return user
-}
