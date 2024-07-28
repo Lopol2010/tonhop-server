@@ -11,6 +11,7 @@ export default cleanEnv(process.env, {
   PORT: num({ default: 1337 }),
   NODE_ENV: str({ default: "development" }),
   MODE: str({ default: "" }),
+  MNEMONIC: str(),
   PUBLIC_KEY: str(),
   PRIVATE_KEY: str(),
 })

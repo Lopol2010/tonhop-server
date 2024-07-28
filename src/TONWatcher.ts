@@ -1,84 +1,121 @@
-import { Block, HttpTransport, ParseAccount, PublicClient, createPublicClient, http } from 'viem';
-// import env from './utils/env';
-import { networkConfig, NetworkConfigInterface } from './networkConfig';
-import { CrosschainTransfer, CrosschainTransferModel, TransferOriginBNB } from './models/CrosschainTransfer';
-import { BridgedLog } from './LogValidation';
-import { Address, TonClient } from '@ton/ton';
+import { Address, TonClient, Transaction } from '@ton/ton';
 import { wait } from './utils/utils';
+import axios from 'axios';
+import { getHttpEndpoint } from '@orbs-network/ton-access';
+
+interface TONWatcherOptions {
+    client: TonClient;
+    accountAddress: Address;
+    startTransactionLT: string | undefined
+    startTransactionHash: string | undefined;
+    pollInterval?: number;
+    onNewStartTransaction: (lt: string, hash: string) => Promise<void>;
+}
 
 export class TONWatcher {
 
-    private client: TonClient;
-    private accountAddress: Address;
-    private startTime: number;
-    private onTransaction: any;
+    client: TonClient;
+    accountAddress: Address;
+    startTransactionLT: string | undefined
+    startTransactionHash: string | undefined;
+    pollInterval: number;
+    onNewStartTransaction: (lt: string, hash: string) => Promise<void>;
 
-    constructor(client: TonClient, accountAddress: string | Address, startTime: number, onTransaction: (tx: any) => void) {
-        this.client = client;
-        this.accountAddress = typeof accountAddress === 'string' ? Address.parse(accountAddress) : accountAddress;
-        this.startTime = startTime; // start unixtime (stored in your database), transactions made earlier will be discarded.
-        this.onTransaction = onTransaction;
+    private constructor(private options: TONWatcherOptions) {
+        this.client = options.client;
+        this.accountAddress = options.accountAddress;
+        this.startTransactionLT = options.startTransactionLT;
+        this.startTransactionHash = options.startTransactionHash;
+        this.pollInterval = options.pollInterval ?? 5 * 1000;
+        this.onNewStartTransaction = options.onNewStartTransaction;
     }
 
-    async start() {
-        const getTransactions = async (time: number, offsetTransactionLT?: string, offsetTransactionHash?: string, retryCount: number = 0): Promise<number> => {
+    public static async create(options: TONWatcherOptions) {
+        let instance = new TONWatcher(options);
+        return instance;
+    }
+
+
+    async start(onTransaction: (tx: Transaction) => Promise<void>) {
+        console.log(`[TONWatcher] Watching for new transactions at: ${this.accountAddress}`);
+
+        const getTransactions = async (
+            retryCount: number = 0,
+            newStartTransaction: {
+                lt: string,
+                hash: string,
+            } | null = null,
+            offsetTransactionLT?: string,
+            offsetTransactionHash?: string,
+        ): Promise<{ lt: string, hash: string } | null> => {
             const COUNT = 10;
 
+
             if (offsetTransactionLT) {
-                console.log(`Get ${COUNT} transactions before transaction ${offsetTransactionLT}:${offsetTransactionHash}`);
+                // console.log(`[TONWatcher] Get ${COUNT} transactions before transaction ${offsetTransactionLT}:${offsetTransactionHash}`);
             } else {
-                console.log(`Get last ${COUNT} transactions`);
+                // console.log(`[TONWatcher] Get last ${COUNT} transactions`);
             }
 
-            // TON transaction has composite ID: account address (on which the transaction took place) + transaction LT (logical time) + transaction hash.
-            // So TxID = address+LT+hash, these three parameters uniquely identify the transaction.
-            // In our case, we are monitoring one wallet and the address is `accountAddress`.
+            if (this.startTransactionLT) {
+                // console.log(`[TONWatcher] But newer than transaction ${this.startTransactionLT}:${this.startTransactionHash}`);
+            }
 
             let transactions;
 
             try {
                 transactions = await this.client.getTransactions(this.accountAddress, {
-                    limit: COUNT, 
-                    ...(offsetTransactionLT && { lt: offsetTransactionLT }), 
-                    ...(offsetTransactionHash && { hash: offsetTransactionHash }) 
+                    limit: COUNT,
+                    ...(offsetTransactionLT != undefined && { lt: offsetTransactionLT }),
+                    ...(offsetTransactionHash != undefined && { hash: offsetTransactionHash }),
+                    ...(this.startTransactionLT != undefined && { to_lt: this.startTransactionLT.toString() }),
+                    archival: true
                 });
-            } catch (e) {
-                console.error(e);
+            } catch (error) {
+                let newError = error;
+                if (error instanceof axios.AxiosError && error.response) {
+                    newError = {
+                        status: error.response.status,
+                        statusText: error.response.statusText,
+                        data: error.response.data
+                    };
+                }
+                console.log("[TONWatcher] error:", newError);
+
                 // if an API error occurs, try again
                 retryCount++;
                 if (retryCount < 10) {
                     await wait(retryCount * 1000);
-                    return getTransactions(time, offsetTransactionLT, offsetTransactionHash, retryCount);
+                    return getTransactions(retryCount, newStartTransaction, offsetTransactionLT, offsetTransactionHash);
                 } else {
-                    return 0;
+                    return null;
                 }
             }
 
-            console.log(`Got ${transactions.length} transactions`);
+            // console.log(`[TONWatcher] Got ${transactions.length} transactions`);
 
             if (!transactions.length) {
-                // If you use your own API instance make sure the code contains this fix https://github.com/toncenter/ton-http-api/commit/a40a31c62388f122b7b7f3da7c5a6f706f3d2405
-                // If you use public toncenter.com then everything is OK.
-                return time;
+                return newStartTransaction;
             }
 
-            if (!time) time = transactions[0].now;
+            if (newStartTransaction == null) {
+                newStartTransaction = {
+                    lt: transactions[0].lt.toString(),
+                    hash: transactions[0].hash().toString("base64")
+                }
+            }
 
             for (const tx of transactions) {
-
-                if (tx.now < this.startTime) {
-                    return time;
-                }
-
-                await this.onTransaction(tx);
+                console.log(`[TONWatcher] Got new transaction ${tx.lt} : ${tx.hash().toString("base64")}`);
+                await onTransaction(tx);
             }
 
             if (transactions.length === 1) {
-                return time;
+                return newStartTransaction;
             }
 
             const lastTx = transactions[transactions.length - 1];
-            return await getTransactions(time, lastTx.lt.toString(), lastTx.hash().toString("hex"), 0);
+            return await getTransactions(0, newStartTransaction, lastTx.lt.toString(), lastTx.hash().toString('base64'));
         }
 
 
@@ -89,18 +126,22 @@ export class TONWatcher {
             isProcessing = true;
 
             try {
-                const result = await getTransactions(0, undefined, undefined, 0);
-                if (result > 0) {
-                    this.startTime = result; // store in your database
+                const result = await getTransactions(0, null, undefined, undefined);
+                if (result != null) {
+                    this.startTransactionLT = result.lt;
+                    this.startTransactionHash = result.hash;
+                    await this.onNewStartTransaction(result.lt, result.hash)
                 }
+
             } catch (e) {
-                console.error(e);
+                console.error("[TONWatcher]", e);
             }
 
             isProcessing = false;
         }
 
-        setInterval(tick, 5 * 1000); 
+        setInterval(tick, this.pollInterval);
         tick();
     }
+
 }

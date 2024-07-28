@@ -1,17 +1,17 @@
 import { Abi, BlockTag, ContractEventName, ExtractAbiItem, GetContractEventsReturnType, Log, createPublicClient, http, parseUnits } from 'viem';
 import { bsc, bscTestnet } from 'viem/chains';
 // import env from './utils/env';
-import { LogIdFull, TransferDetailsArray, } from './utils/TransferDetailsArray';
+import { EVMEvenLogId, TransferDetailsTONChain, } from './utils/TransferDetails';
 import { isValidTonAddress, isTestnetAddress, convertDecimals } from './utils/utils';
 import { networkConfig } from './networkConfig';
 import { getBlock, getTransaction, getTransactionReceipt } from 'viem/actions';
 import mongoose from 'mongoose';
-import { CrosschainTransferModel } from './models/CrosschainTransfer';
+import { TransferRequestFromEVMModel } from './models/TransferRequest';
 const PQueue = require('p-queue').default;
 
 export type BridgedLog = Log<bigint, number, boolean, undefined, boolean, typeof networkConfig.bsc.bridgeAbi, 'Bridged'>;
 export async function validateEventLogs(logs: BridgedLog[]) {
-    let transferDetailsArray: TransferDetailsArray = [];
+    let transferDetailsArray: TransferDetailsTONChain[] = [];
     for (let i = 0; i < logs.length; i++) {
         let log = logs[i];
         if (log.removed) {
@@ -48,7 +48,7 @@ export async function validateEventLogs(logs: BridgedLog[]) {
             continue;
         }
 
-        let isTransferAlreadyProcessed = await CrosschainTransferModel.existsByLog(log);
+        let isTransferAlreadyProcessed = await TransferRequestFromEVMModel.existsByLog(log);
 
         if(isTransferAlreadyProcessed) {
             console.warn("Skipping log that's already processed: ", log);

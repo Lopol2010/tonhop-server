@@ -1,7 +1,7 @@
 import { Block, HttpTransport, ParseAccount, PublicClient, createPublicClient, http } from 'viem';
 // import env from './utils/env';
 import { networkConfig, NetworkConfigInterface } from './networkConfig';
-import { CrosschainTransfer, CrosschainTransferModel, TransferOriginBNB } from './models/CrosschainTransfer';
+import { Chain, TransferRequestFromEVMModel } from './models/TransferRequest';
 import { BridgedLog } from './LogValidation';
 
 
@@ -38,7 +38,7 @@ export class BNBWatcher {
         onLogsCallback: (_: BridgedLog[]) => Promise<void>
     ) {
 
-        const lastTransfer = await CrosschainTransferModel.findLastByOriginChain("BNB");
+        const lastTransfer = await TransferRequestFromEVMModel.findLast(Chain.BNB);
 
         if (!lastTransfer) {
             console.log("[Backtrack] Last processed transfer is not found, backtracking is aborted")
@@ -46,10 +46,10 @@ export class BNBWatcher {
         }
 
 
-        console.log(`[Backtrack] start at: ${lastTransfer.origin.blockHash} ${lastTransfer.origin.transactionHash} ${lastTransfer.origin.logIndex}`);
+        console.log(`[Backtrack] start at: ${lastTransfer.blockHash} ${lastTransfer.transactionHash} ${lastTransfer.logIndex}`);
 
         let fromBlock = await this.client.getBlock({
-            blockHash: lastTransfer.origin.blockHash,
+            blockHash: lastTransfer.blockHash,
             includeTransactions: false
         }).then((block) => block.number);
 
@@ -87,9 +87,9 @@ export class BNBWatcher {
         logs.forEach((log) => console.log(`[Backtrack] Fetched log: ${log} ${log.blockHash} ${log.transactionHash} ${log.logIndex}`));
 
         let splitIndex = logs.findIndex((log) => {
-            return log.blockHash == lastTransfer.origin.blockHash
-                && log.transactionHash == lastTransfer.origin.transactionHash
-                && log.logIndex == lastTransfer.origin.logIndex
+            return log.blockHash == lastTransfer.blockHash
+                && log.transactionHash == lastTransfer.transactionHash
+                && log.logIndex == lastTransfer.logIndex
         });
 
         if (splitIndex !== -1) {

@@ -1,4 +1,4 @@
-import { TransferDetailsArray } from "@/utils/TransferDetailsArray";
+import { TransferDetailsTONChain } from "@/utils/TransferDetails";
 import { Address } from "@ton/ton";
 import { formatUnits, Log, parseUnits } from "viem";
 
@@ -8,7 +8,7 @@ export let convertDecimals = (amountA: bigint, decimalsA: number, decimalsB: num
     return parseUnits(formatUnits(amountA, decimalsA), decimalsB);
 }
 
-export function printTransferDetails(transferDetailsArray: TransferDetailsArray) {
+export function printTransferDetails(transferDetailsArray: TransferDetailsTONChain[]) {
     transferDetailsArray.forEach((transferDetails) => {
       const log = transferDetails.sourceLog;
       console.log(`\nTransfer Details:`);
