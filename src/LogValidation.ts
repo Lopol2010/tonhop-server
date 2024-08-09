@@ -15,6 +15,7 @@ export async function validateEventLogs(logs: BridgedLog[]) {
     for (let i = 0; i < logs.length; i++) {
         let log = logs[i];
         if (log.removed) {
+            // TODO: handle chain reorgs, for example wait for confirmations to avoid reorgs at all
             console.warn("Skipping removed log: ", log);
             continue;
         }

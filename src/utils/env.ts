@@ -14,4 +14,5 @@ export default cleanEnv(process.env, {
   MNEMONIC: str(),
   PUBLIC_KEY: str(),
   PRIVATE_KEY: str(),
+  BNB_HOTWALLET_PRIVATE_KEY: str<`0x${string}`>(),
 })

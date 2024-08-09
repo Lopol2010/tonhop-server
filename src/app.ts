@@ -5,6 +5,7 @@ import { TransferRequestFromEVMModel } from './models/TransferRequest'
 import { onShutdown } from 'node-graceful-shutdown'
 import mongoose from 'mongoose'
 import { BridgeService } from './BridgeService'
+import { mnemonicToPrivateKey } from '@ton/crypto'
 
 
 (async function () {
