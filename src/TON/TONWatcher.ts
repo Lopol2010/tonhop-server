@@ -1,5 +1,5 @@
 import { Address, TonClient, Transaction } from '@ton/ton';
-import { wait } from './utils/utils';
+import { wait } from '../utils/utils';
 import axios from 'axios';
 import { getHttpEndpoint } from '@orbs-network/ton-access';
 

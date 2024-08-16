@@ -1,11 +1,11 @@
 import { Address, Slice, TonClient, Transaction } from '@ton/ton';
-import { convertDecimals, wait } from './utils/utils';
+import { convertDecimals, wait } from '../utils/utils';
 import axios from 'axios';
 import { getHttpEndpoint } from '@orbs-network/ton-access';
 import { isAddress, parseUnits } from 'viem';
-import { TransferDetailsBNBChain } from './utils/TransferDetails';
-import { networkConfig } from './networkConfig';
-import { TransferRequestFromTONModel } from './models/TransferRequest';
+import { TransferDetailsBNBChain } from '../utils/TransferDetails';
+import { networkConfig } from '../networkConfig';
+import { TransferRequestFromTONModel } from '../models/TransferRequest';
 
 export async function validateTONTransaction(tx: Transaction) {
     if (!tx.inMessage || tx.inMessage.info.type != "internal") return null;
@@ -23,18 +23,18 @@ export async function validateTONTransaction(tx: Transaction) {
     // remove 4 bytes of zeroes (string payload prefix)
     payloadString = payloadString.trim().slice(4);
 
-    const destinationAddress = payloadString;
+    const destinationAddress = payloadString.slice(0, 42);
 
     if (!isAddress(destinationAddress, { strict: false })) {
         console.warn("Skipping message with invalid destination address: ", destinationAddress);
         return null;
     }
 
-    let amountToncoin = inMsgInfo.value.coins;
-    let amountToTransferWTON = convertDecimals(amountToncoin, networkConfig.ton.tonDecimals, networkConfig.bsc.wtonDecimals);
+    let amountReceivedInTON = inMsgInfo.value.coins - tx.totalFees.coins;
+    let amountToTransferWTON = convertDecimals(amountReceivedInTON, networkConfig.ton.tonDecimals, networkConfig.bsc.wtonDecimals);
     let minAmountToTransferToncoins = parseUnits(networkConfig.bsc.minAmount, networkConfig.ton.tonDecimals);
     if (amountToTransferWTON < minAmountToTransferToncoins) {
-        console.warn("Skipping message with too small amount: ", amountToncoin);
+        console.warn("Skipping message with too small amount: ", amountReceivedInTON);
         return null;
     }
 

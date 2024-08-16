@@ -1,12 +1,12 @@
 import { Abi, BlockTag, ContractEventName, ExtractAbiItem, GetContractEventsReturnType, Log, createPublicClient, http, parseUnits } from 'viem';
 import { bsc, bscTestnet } from 'viem/chains';
 // import env from './utils/env';
-import { EVMEvenLogId, TransferDetailsTONChain, } from './utils/TransferDetails';
-import { isValidTonAddress, isTestnetAddress, convertDecimals } from './utils/utils';
-import { networkConfig } from './networkConfig';
+import { EVMEvenLogId, TransferDetailsTONChain, } from '../utils/TransferDetails';
+import { isValidTonAddress, isTestnetAddress, convertDecimals } from '../utils/utils';
+import { networkConfig } from '../networkConfig';
 import { getBlock, getTransaction, getTransactionReceipt } from 'viem/actions';
 import mongoose from 'mongoose';
-import { TransferRequestFromEVMModel } from './models/TransferRequest';
+import { TransferRequestFromEVMModel } from '../models/TransferRequest';
 const PQueue = require('p-queue').default;
 
 export type BridgedLog = Log<bigint, number, boolean, undefined, boolean, typeof networkConfig.bsc.bridgeAbi, 'Bridged'>;

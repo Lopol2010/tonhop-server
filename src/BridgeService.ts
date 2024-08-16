@@ -1,16 +1,16 @@
-import { BNBWatcher } from './BNBWatcher';
-import { TONSender } from './TONSender';
-import { BridgedLog, validateEventLogs as filterInvalidLogs } from './LogValidation';
+import { BNBWatcher } from './BNB/BNBWatcher';
+import { TONSender } from './TON/TONSender';
+import { BridgedLog, validateEventLogs as filterInvalidLogs } from './BNB/LogValidation';
 import { printTransferDetails } from './utils/utils';
-import { BNBSender } from './BNBSender';
-import { TONWatcher } from './TONWatcher';
+import { BNBSender } from './BNB/BNBSender';
+import { TONWatcher } from './TON/TONWatcher';
 import { Address, Transaction } from '@ton/core';
 import { getHttpEndpoint } from '@orbs-network/ton-access';
 import { networkConfig } from './networkConfig';
 import { TonClient } from '@ton/ton';
 import { LastFetchedTONTransactionModel } from './models/LastFetchedTONTransaction';
 import { Chain, TransferRequestFromEVMModel, TransferRequestFromTONModel, TransferRequestStatus } from './models/TransferRequest';
-import { validateTONTransaction } from './TONTransactionValidation';
+import { validateTONTransaction } from './TON/TONTransactionValidation';
 
 
 export class BridgeService {

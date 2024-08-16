@@ -1,4 +1,4 @@
-import { BridgedLog } from '@/LogValidation';
+import { BridgedLog } from '@/BNB/LogValidation';
 import { TransferDetailsBNBChain, TransferDetailsTONChain } from '@/utils/TransferDetails';
 import { Transaction } from '@ton/core';
 import {

@@ -1,11 +1,11 @@
 import { Account, Block, Client, HDAccount, HttpTransport, ParseAccount, PublicClient, WalletClient, createClient, createPublicClient, createWalletClient, erc20Abi, formatUnits, http, publicActions, walletActions } from 'viem';
 // import env from './utils/env';
-import { networkConfig, NetworkConfigInterface } from './networkConfig';
-import { TransferRequestFromEVMModel, TransferRequestFromTONModel, TransferRequestStatus } from './models/TransferRequest';
+import { networkConfig, NetworkConfigInterface } from '../networkConfig';
+import { TransferRequestFromEVMModel, TransferRequestFromTONModel, TransferRequestStatus } from '../models/TransferRequest';
 import { BridgedLog } from './LogValidation';
-import { TransferDetailsBNBChain } from './utils/TransferDetails';
+import { TransferDetailsBNBChain } from '../utils/TransferDetails';
 import { mnemonicToAccount, privateKeyToAccount } from 'viem/accounts';
-import env from './utils/env';
+import env from '../utils/env';
 
 
 export class BNBSender {

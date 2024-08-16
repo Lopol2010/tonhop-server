@@ -1,7 +1,7 @@
 import { Block, HttpTransport, ParseAccount, PublicClient, createPublicClient, http } from 'viem';
 // import env from './utils/env';
-import { networkConfig, NetworkConfigInterface } from './networkConfig';
-import { Chain, TransferRequestFromEVMModel } from './models/TransferRequest';
+import { networkConfig, NetworkConfigInterface } from '../networkConfig';
+import { Chain, TransferRequestFromEVMModel } from '../models/TransferRequest';
 import { BridgedLog } from './LogValidation';
 
 

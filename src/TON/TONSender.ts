@@ -1,16 +1,16 @@
 // import env from './utils/env';
-import { TransferDetailsTONChain } from './utils/TransferDetails';
+import { TransferDetailsTONChain } from '../utils/TransferDetails';
 import mongoose from 'mongoose';
-import { Chain, TransferRequestFromEVM, TransferRequestFromEVMModel, TransferRequestStatus } from './models/TransferRequest';
-import { getLastQueryId, getNextQueryId } from './models/QueryIdModel';
+import { Chain, TransferRequestFromEVM, TransferRequestFromEVMModel, TransferRequestStatus } from '../models/TransferRequest';
+import { getLastQueryId, getNextQueryId } from '../models/QueryIdModel';
 import { formatUnits, parseUnits } from 'viem';
-import { networkConfig } from './networkConfig';
+import { networkConfig } from '../networkConfig';
 import { KeyPair, keyPairFromSecretKey } from '@ton/crypto';
-import env from './utils/env';
+import env from '../utils/env';
 import { getHttpEndpoint } from '@orbs-network/ton-access';
-import { HighloadWalletV3 } from './HighloadWalletV3/HighloadWalletV3';
+import { HighloadWalletV3 } from '../HighloadWalletV3/HighloadWalletV3';
 import { Address, internal, OpenedContract, OutActionSendMsg, SendMode, TonClient } from '@ton/ton';
-import { HighloadQueryId } from './HighloadWalletV3/HighloadQueryId';
+import { HighloadQueryId } from '../HighloadWalletV3/HighloadQueryId';
 import axios from 'axios';
 
 
