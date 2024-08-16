@@ -48,10 +48,16 @@ export class BNBWatcher {
 
         console.log(`[Backtrack] start at: ${lastTransfer.blockHash} ${lastTransfer.transactionHash} ${lastTransfer.logIndex}`);
 
-        let fromBlock = await this.client.getBlock({
-            blockHash: lastTransfer.blockHash,
-            includeTransactions: false
-        }).then((block) => block.number);
+        let fromBlock;
+        try {
+            fromBlock = await this.client.getBlock({
+                blockHash: lastTransfer.blockHash,
+                includeTransactions: false
+            }).then((block) => block.number);
+        } catch (error) {
+            console.log(`[Backtrack] Failed with error:`, error);
+            return;
+        }
 
         if (!fromBlock) {
             console.log(`[Backtrack] Aborted, block number is null`);
