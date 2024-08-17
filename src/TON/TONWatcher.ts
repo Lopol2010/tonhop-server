@@ -134,7 +134,7 @@ export class TONWatcher {
                 }
 
             } catch (e) {
-                console.error("[TONWatcher]", e);
+                console.error("[TONWatcher] error:", e);
             }
 
             isProcessing = false;

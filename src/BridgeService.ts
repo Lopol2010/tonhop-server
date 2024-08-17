@@ -36,7 +36,7 @@ export class BridgeService {
     let lastFetchedTONTransaction = await LastFetchedTONTransactionModel.get() || { lt: undefined, hash: undefined };
     const tonWatcher = await TONWatcher.create({
       client,
-      accountAddress: Address.parse("EQDzVut2kivyZv6W916A58ilS7AvjtvtuwltVGRqpiWbwuSB"),
+      accountAddress: networkConfig.ton.highloadWalletAddress,
       pollInterval: 3 * 1000,
       startTransactionLT: lastFetchedTONTransaction.lt,
       startTransactionHash: lastFetchedTONTransaction.hash,
