@@ -75,6 +75,9 @@ export class TONWatcher {
                 let newError = error;
                 if (error instanceof axios.AxiosError && error.response) {
                     newError = {
+                        offsetTransactionHash,
+                        offsetTransactionLT,
+                        startTransactionLT: this.startTransactionLT,
                         status: error.response.status,
                         statusText: error.response.statusText,
                         data: error.response.data
