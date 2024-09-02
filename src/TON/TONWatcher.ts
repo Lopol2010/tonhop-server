@@ -1,13 +1,13 @@
 import { Address, TonClient, Transaction } from '@ton/ton';
 import { wait } from '../utils/utils';
 import axios from 'axios';
-import { getHttpEndpoint } from '@orbs-network/ton-access';
 
 interface TONWatcherOptions {
     client: TonClient;
     accountAddress: Address;
     startTransactionLT: string | undefined
     startTransactionHash: string | undefined;
+          oldestTONTransactionTime: number;
     pollInterval?: number;
     onNewStartTransaction: (lt: string, hash: string) => Promise<void>;
 }
@@ -16,8 +16,9 @@ export class TONWatcher {
 
     client: TonClient;
     accountAddress: Address;
-    startTransactionLT: string | undefined
+    startTransactionLT: string | undefined;
     startTransactionHash: string | undefined;
+    oldestTONTransactionTime: number;
     pollInterval: number;
     onNewStartTransaction: (lt: string, hash: string) => Promise<void>;
 
@@ -26,6 +27,7 @@ export class TONWatcher {
         this.accountAddress = options.accountAddress;
         this.startTransactionLT = options.startTransactionLT;
         this.startTransactionHash = options.startTransactionHash;
+        this.oldestTONTransactionTime = options.oldestTONTransactionTime;
         this.pollInterval = options.pollInterval ?? 5 * 1000;
         this.onNewStartTransaction = options.onNewStartTransaction;
     }
@@ -69,6 +71,7 @@ export class TONWatcher {
                     ...(offsetTransactionLT != undefined && { lt: offsetTransactionLT }),
                     ...(offsetTransactionHash != undefined && { hash: offsetTransactionHash }),
                     ...(this.startTransactionLT != undefined && { to_lt: this.startTransactionLT.toString() }),
+                    // to_lt: "0",
                     archival: true
                 });
             } catch (error) {
@@ -109,6 +112,11 @@ export class TONWatcher {
             }
 
             for (const tx of transactions) {
+                if(tx.now <= this.oldestTONTransactionTime) {
+                    console.log(`[TONWatcher] Skipped transaction with time ${tx.now} less than limit ${this.oldestTONTransactionTime}`);
+                    continue;
+                }
+                console.log(tx.now, this.oldestTONTransactionTime)
                 console.log(`[TONWatcher] Got new transaction ${tx.lt} : ${tx.hash().toString("base64")}`);
                 await onTransaction(tx);
             }

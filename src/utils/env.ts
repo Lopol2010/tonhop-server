@@ -15,4 +15,5 @@ export default cleanEnv(process.env, {
   PUBLIC_KEY: str(),
   PRIVATE_KEY: str(),
   BNB_HOTWALLET_PRIVATE_KEY: str<`0x${string}`>(),
+  TONCENTER_API_KEY: str()
 })

@@ -11,6 +11,7 @@ import { TonClient } from '@ton/ton';
 import { LastFetchedTONTransactionModel } from './models/LastFetchedTONTransaction';
 import { Chain, TransferRequestFromEVMModel, TransferRequestFromTONModel, TransferRequestStatus } from './models/TransferRequest';
 import { validateTONTransaction } from './TON/TONTransactionValidation';
+import env from './utils/env';
 
 
 export class BridgeService {
@@ -30,16 +31,24 @@ export class BridgeService {
   }
 
   public static async create(): Promise<BridgeService> {
-    const endpoint = await getHttpEndpoint({ network: networkConfig.ton.network });
-    const client = new TonClient({ endpoint });
+    // const endpoint = await getHttpEndpoint({ network: networkConfig.ton.network });
+    const endpoint = "https://toncenter.com/api/v2/jsonRPC";
+    const client = new TonClient({ endpoint, apiKey: env.TONCENTER_API_KEY });
 
-    let lastFetchedTONTransaction = await LastFetchedTONTransactionModel.get() || { lt: undefined, hash: undefined };
+    let lastFetchedTONTransaction = await LastFetchedTONTransactionModel.get();
+
+    // If not found lastFetchedTONTransaction in DB, then use current time to filter out old transactions!
+    let oldestTONTransactionTime = 0;
+    if(lastFetchedTONTransaction == null) {
+      oldestTONTransactionTime = Math.floor(Date.now() / 1000)
+    }
     const tonWatcher = await TONWatcher.create({
       client,
       accountAddress: networkConfig.ton.highloadWalletAddress,
       pollInterval: 3 * 1000,
-      startTransactionLT: lastFetchedTONTransaction.lt,
-      startTransactionHash: lastFetchedTONTransaction.hash,
+      startTransactionLT: lastFetchedTONTransaction ? lastFetchedTONTransaction.lt : undefined,
+      startTransactionHash: lastFetchedTONTransaction ? lastFetchedTONTransaction.hash : undefined,
+      oldestTONTransactionTime,
       onNewStartTransaction: async (newStartLT, newStartHash) => {
         await LastFetchedTONTransactionModel.update({ lt: newStartLT, hash: newStartHash });
       }
@@ -50,7 +59,7 @@ export class BridgeService {
     const bnbSender = new BNBSender();
 
     const PQueue = require('p-queue').default;
-    const queue = new PQueue({ concurrency: 1 });
+    const queue = new PQueue({ concurrency: 1 }); // must process one-by-one
     const instance = new BridgeService(tonWatcher, tonSender, bnbWatcher, bnbSender, queue);
     return instance;
   }

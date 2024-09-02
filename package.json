@@ -16,6 +16,7 @@
     "gen:dev": "cross-env NODE_ENV=development wagmi generate",
     "gen:hardhat": "cross-env NODE_ENV=development MODE=hardhat wagmi generate",
     "dev": "dotenvx run -f .env.development -- tsc-watch -p ./tsconfig.json --onSuccess \"node dist/app.js\"",
+    "prod": "dotenvx run -f .env.production -- tsc-watch -p ./tsconfig.json --onSuccess \"node dist/app.js\"",
     "dev2": "tsc-watch -p ./tsconfig.json --onSuccess \"dotenvx run -f .env.development -- node dist/app.js\"",
     "test:hardhat": "dotenvx run -f .env.hardhat -- jest --forceExit --runInBand",
     "test": "dotenvx run -f .env.development -- jest --forceExit --runInBand"
