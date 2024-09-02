@@ -35,7 +35,7 @@ let configs: { [id: string]: NetworkConfigInterface } = {
             chain: env.MODE ? hardhat : bscTestnet,
             // rpcUrl: "https://bsc-testnet-rpc.publicnode.com",
             rpcUrl: bscTestnet.rpcUrls.default.http[0],
-            minAmount: "0.05",
+            minAmount: "0.04",
             wtonDecimals: env.MODE ? 9 : 18,
             wtonAddress: "0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee",
             bridgeAbi: bridgeAbi,
@@ -52,7 +52,7 @@ let configs: { [id: string]: NetworkConfigInterface } = {
         bsc: {
             chain: bsc,
             rpcUrl: "",
-            minAmount: "0.05",
+            minAmount: "0.04",
             wtonDecimals: 9,
             wtonAddress: "0x76A797A59Ba2C17726896976B7B3747BfD1d220f",
             bridgeAbi: bridgeAbi,
